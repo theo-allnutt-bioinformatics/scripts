@@ -20,8 +20,8 @@ parser.add_option("-e", "--eval", dest="eval1", help="threshold e-value", defaul
 parser.add_option("-t", "--type", dest="type", help="blast type: blastn, blastp, blastx, tblastx, tblastn", default="blastn")
 parser.add_option("--hsps", dest="hsps", help="number of hsps to show", default="1000")
 parser.add_option("--threads", dest="threads", help="number of threads to use", default="4")
-parser.add_option("-m", "--max_seqs", dest="maxs", default="100",help="max number of target seqs")
-
+#parser.add_option("-m", "--max_seqs", dest="maxs", default="100",help="max number of target seqs")
+#removed due to bad behavior, use max_hsps only
 
 (options, args) = parser.parse_args()
 
@@ -40,7 +40,7 @@ evalue=options.eval1
 type=options.type
 
 hsps = options.hsps
-maxs = options.maxs
+#maxs = options.maxs
 
 print folder
 print subject
@@ -61,9 +61,9 @@ for f in filelist:
 	
 	if type == "remote":
 	
-		print "blastn -remote -query %s -db nt -out %s -outfmt '6 qseqid sseqid pident length slen qstart qend sstart send evalue bitscore stitle' -evalue %s  -max_hsps %s -max_target_seqs %s" %(f,outname,evalue,hsps,maxs)
+		print "blastn -remote -query %s -db nt -out %s -outfmt '6 qseqid sseqid pident length slen qstart qend sstart send evalue bitscore stitle' -evalue %s  -max_hsps %s " %(f,outname,evalue,hsps)
 		
-		p1[c]= subprocess.Popen("blastn -remote -query %s -db nt -out %s -outfmt '6 qseqid sseqid pident length slen qstart qend sstart send evalue bitscore stitle' -evalue %s  -max_hsps %s -max_target_seqs %s" %(f,outname,evalue,hsps,maxs), shell=True) 
+		p1[c]= subprocess.Popen("blastn -remote -query %s -db nt -out %s -outfmt '6 qseqid sseqid pident length slen qstart qend sstart send evalue bitscore stitle' -evalue %s  -max_hsps %s " %(f,outname,evalue,hsps,), shell=True) 
 	
 	if type == "blastp":
 		p1[c]= subprocess.Popen("blastp -query %s -db %s -out %s -outfmt '6 qseqid sseqid pident length slen qstart qend sstart send evalue bitscore stitle' -evalue %s -num_threads 24 -max_hsps %s" %(f,subject,outname,evalue,hsps), shell=True)
@@ -103,9 +103,9 @@ if type == "remote":
 				outname = outputfolder+"/"+f.split("/")[-1]+".blast"
 				print outname, "blast parameters: task= %s evalue= %s" %(type,evalue)
 				
-				print "blastn -remote -query %s -db nt -out %s -outfmt '6 qseqid sseqid pident length slen qstart qend sstart send evalue bitscore stitle' -evalue %s  -max_hsps %s -max_target_seqs %s" %(f,outname,evalue,hsps,maxs)
+				print "blastn -remote -query %s -db nt -out %s -outfmt '6 qseqid sseqid pident length slen qstart qend sstart send evalue bitscore stitle' -evalue %s  -max_hsps %s" %(f,outname,evalue,hsps)
 				
-				p1[c]= subprocess.Popen("blastn -remote -query %s -db nt -out %s -outfmt '6 qseqid sseqid pident length slen qstart qend sstart send evalue bitscore stitle' -evalue %s  -max_hsps %s -max_target_seqs %s" %(f,outname,evalue,hsps,maxs), shell=True) 
+				p1[c]= subprocess.Popen("blastn -remote -query %s -db nt -out %s -outfmt '6 qseqid sseqid pident length slen qstart qend sstart send evalue bitscore stitle' -evalue %s  -max_hsps %s" %(f,outname,evalue,hsps), shell=True) 
 				
 				
 			if c>=int(threads)-1:
