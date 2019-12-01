@@ -4,7 +4,7 @@ import sys
 import os
 import re
 import glob
-#written for 060, outputs all taxon levels, use "-t rel_ab_w_read_stats" in metaphlan2.py
+#made in project 075.10
 
 digits = re.compile(r'(\d+)')
 def tokenize(filename):
@@ -18,25 +18,20 @@ def tokenize(filename):
 folder = sys.argv[1] #working folder
 outfile=sys.argv[2] #output file prefix
 
-delim=sys.argv[3] #taxonomy output delimiter
+#delim=sys.argv[3] #taxonomy output delimiter
 
-fthresh=int(sys.argv[4]) #threshold of number of samples that have each otu
-otuthresh=int(sys.argv[5])#total count threshold for each otu
+fthresh=int(sys.argv[3]) #threshold of number of samples that have each otu
+otuthresh=int(sys.argv[4])#total count threshold for each otu
 
 filelist=glob.glob(folder)
 
 filelist.sort(key=tokenize)
 
-if sys.argv[6] == 'count':
-	dtype=-1
-else:
-	dtype=1
-
 print filelist
 
 data={}
 allspecies={}
-tax_levels=["d","k","p","c","o","f","g","s","t"]
+tax_levels=["|superkingdom_","|kingdom_","|phylum_","|order_","|family_","|genus_","|species_"]
 filenames=[]
 
 for i in filelist:
@@ -45,7 +40,9 @@ for i in filelist:
 	filename = ".".join(str(p) for p in i.split("/")[-1].split(".")[:-1])
 	filenames.append(filename)
 	data[filename]={}
-	#k__Bacteria|p__Bacteroidetes|c__Bacteroidia|o__Bacteroidales|f__Prevotellaceae|g__Prevotella|s__Prevotella_buccalis|t__GCF_000177075	0.00127	2.39794735706e-05	3033961	73
+	
+	#example input format
+	#|no rank__root|no rank__cellular organisms|superkingdom__Eukaryota|no rank__Opisthokonta|kingdom__Fungi|subkingdom__Dikarya|phylum__Ascomycota|no rank__saccharomyceta|subphylum__Pezizomycotina|no rank__leotiomyceta|class__Eurotiomycetes|subclass__Eurotiomycetidae|order__Eurotiales|family__Aspergillaceae|genus__Aspergillus|species__Aspergillus flavus|no rank__Aspergillus flavus NRRL3357
 	
 	for line in file1:
 	
@@ -55,34 +52,32 @@ for i in filelist:
 			if level not in data[filename].keys():
 				data[filename][level]={}
 			if line[0]<>"#":
-				sp1 = line.split("\t")[0]
-				sp=sp1.split(delim)[-1]
+				fulltax = line.split("\t")[0]
+				lowest_tax=fulltax.split("|")[-1]  
 				
-				lev = sp.split("__")[0]
+				levs=[]
+				for p in fulltax.split("|"):
+					levs.append("|"+p.split("__")[0]+"_")
 				
-				freq= float(line.split("\t")[dtype].rstrip("\n").rstrip("\r"))
-				if dtype==-1:
-					freq=int(freq)
-				if sp1=="unclassified":
-					if sp1 not in allspecies[level]:
-						allspecies[level].append(sp1)
+				freq= int(line.split("\t")[-1].rstrip("\n").rstrip("\r"))
+			
+			
+				if level in levs: #lev==level: #n.b. this undercounted higher levels.. 
 					
-					if sp1 not in data[filename][level]:
-						
-						data[filename][level][sp1]=""
-						
-					data[filename][level][sp1]=freq	
-				
-				if lev==level:
-				
-					if sp1 not in allspecies[level]:
-						allspecies[level].append(sp1)
+					k1=fulltax.split("|")[:levs.index(level)+1]
+					levtax="|".join(str(p) for p in k1)
 					
-					if sp1 not in data[filename][level]:
+					
+					if levtax not in allspecies[level]:
+						allspecies[level].append(levtax)
+					
+					if levtax not in data[filename][level].keys():
 						
-						data[filename][level][sp1]=""
+						data[filename][level][levtax]=freq
 						
-					data[filename][level][sp1]=freq
+					else:
+						
+						data[filename][level][levtax]=data[filename][level][levtax]+freq
 			
 	file1.close()
 
@@ -114,8 +109,9 @@ g=open(outfile+"_all_"+".tab",'w')
 
 		
 for level in tax_levels:
+	lname=level.lstrip("|")
 	print level,"###########################################################"
-	g2=open(outfile+"_"+level+".tab",'w')
+	g2=open(outfile+"_"+lname+".tab",'w')
 
 	g.write(level+"\t\t"+"\t".join(str(x) for x in filenames)+"\n")
 	g2.write("#OTU_ID"+"\t"+"\t".join(str(x) for x in filenames)+"\n")

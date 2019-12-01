@@ -58,6 +58,8 @@ for i in filelist:
 		k=x.split("\t")
 		taxid=k[0]+"\t"+k[1]
 		count=int(k[d])
+		if k[2]=="leaf" or k[2]=="subspecies":
+			k[2]=="species"
 		
 		if k[2]==taxtype:
 			
@@ -99,11 +101,15 @@ g.close()
 print "adding taxonomy"
 
 p0=subprocess.Popen("cut -f1-2 temp.tab  > tax.in" ,shell=True).wait()
+
+
 p1=subprocess.Popen("perl /stornext/HPCScratch/home/allnutt.t/scripts/tax_trace.pl /stornext/HPCScratch/home/allnutt.t/db/ncbi_taxonomy/nodes.dmp /stornext/HPCScratch/home/allnutt.t/db/ncbi_taxonomy/names.dmp tax.in tax.out",shell=True).wait()
 
 p3=subprocess.Popen("cut -f1 tax.out | paste temp.tab - > %s " %(outfile),shell=True).wait()
 p4=subprocess.Popen("sed -i '1iname\ttaxid\t%s\n' %s" %("\t".join(str(p) for p in samples),outfile),shell=True).wait()
 p5=subprocess.Popen("sed -i 's/root|cellular organisms|//g' %s" %outfile,shell=True).wait()
+p7=subprocess.Popen("sed -i 's/root|//g' %s" %outfile,shell=True).wait()
+
 p6=subprocess.Popen("rm tax.in tax.out temp.tab",shell=True).wait()
 
 print "Total taxa =", str(len(taxa)), "Filtered taxa =", str(n)

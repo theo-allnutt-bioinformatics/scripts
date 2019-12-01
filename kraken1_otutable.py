@@ -4,7 +4,7 @@ import sys
 import os
 import re
 import glob
-#written for 060, outputs all taxon levels, use "-t rel_ab_w_read_stats" in metaphlan2.py
+#written for 75.9 convert kraken reports to otu tables for each taxonmic level
 
 digits = re.compile(r'(\d+)')
 def tokenize(filename):
@@ -18,19 +18,21 @@ def tokenize(filename):
 folder = sys.argv[1] #working folder
 outfile=sys.argv[2] #output file prefix
 
-delim=sys.argv[3] #taxonomy output delimiter
+delim="|" #taxonomy output delimiter
 
-fthresh=int(sys.argv[4]) #threshold of number of samples that have each otu
-otuthresh=int(sys.argv[5])#total count threshold for each otu
+fthresh=int(sys.argv[3]) #threshold of number of samples that have each otu
+otuthresh=int(sys.argv[4])#total count threshold for each otu
 
 filelist=glob.glob(folder)
 
 filelist.sort(key=tokenize)
 
+'''
 if sys.argv[6] == 'count':
 	dtype=-1
 else:
 	dtype=1
+'''
 
 print filelist
 
@@ -45,7 +47,8 @@ for i in filelist:
 	filename = ".".join(str(p) for p in i.split("/")[-1].split(".")[:-1])
 	filenames.append(filename)
 	data[filename]={}
-	#k__Bacteria|p__Bacteroidetes|c__Bacteroidia|o__Bacteroidales|f__Prevotellaceae|g__Prevotella|s__Prevotella_buccalis|t__GCF_000177075	0.00127	2.39794735706e-05	3033961	73
+	
+	#A00326:16:HJW33DMXX:2:1104:7030:1736	d__Eukaryota|k__Viridiplantae|p__Streptophyta|o__Asterales|f__Asteraceae|g__Hinterhubera|s__Hinterhubera_ericoides
 	
 	for line in file1:
 	
@@ -54,37 +57,41 @@ for i in filelist:
 				allspecies[level]=[]
 			if level not in data[filename].keys():
 				data[filename][level]={}
-			if line[0]<>"#":
-				sp1 = line.split("\t")[0]
-				sp=sp1.split(delim)[-1]
 				
-				lev = sp.split("__")[0]
-				
-				freq= float(line.split("\t")[dtype].rstrip("\n").rstrip("\r"))
-				if dtype==-1:
-					freq=int(freq)
-				if sp1=="unclassified":
-					if sp1 not in allspecies[level]:
-						allspecies[level].append(sp1)
-					
-					if sp1 not in data[filename][level]:
-						
-						data[filename][level][sp1]=""
-						
-					data[filename][level][sp1]=freq	
-				
-				if lev==level:
-				
-					if sp1 not in allspecies[level]:
-						allspecies[level].append(sp1)
-					
-					if sp1 not in data[filename][level]:
-						
-						data[filename][level][sp1]=""
-						
-					data[filename][level][sp1]=freq
 			
+			sp1 = line.split("\t")[1].rstrip("\n")
+			sp=sp1.split(delim)[-1]
+			
+			lev = sp.split("__")[0]
+			
+			#freq= float(line.split("\t")[dtype].rstrip("\n").rstrip("\r")) kaken1 does not report counts
+			#if dtype==-1:
+			#	freq=int(freq)
+			
+			#if sp1=="unclassified":
+			#	if sp1 not in allspecies[level]:
+			#		allspecies[level].append(sp1)
+				
+			#	if sp1 not in data[filename][level]:
+					
+			#		data[filename][level][sp1]=""
+					
+			#	data[filename][level][sp1]=freq	
+			
+			if lev==level:
+			
+				if sp1 not in allspecies[level]:
+					allspecies[level].append(sp1)
+				
+				if sp1 not in data[filename][level]:
+					
+					data[filename][level][sp1]=0
+					
+				data[filename][level][sp1]=data[filename][level][sp1]+1
+		
 	file1.close()
+
+print data
 
 filenames.sort(key=tokenize)
 

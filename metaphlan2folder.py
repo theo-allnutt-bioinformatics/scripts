@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/env python
 import sys
 import os
 import re
@@ -18,9 +18,16 @@ g=sys.argv[2] #output folder
 
 fmt=sys.argv[3]
 
+extras=sys.argv[4]
+
+threads=sys.argv[5]
+
 filelist=glob.glob(folder)
 
 filelist.sort(key=tokenize)
+
+p0=subprocess.Popen("mkdir -p %s" %g,shell=True).wait()
+p2=subprocess.Popen("module load bowtie2", shell=True).wait()
 
 print filelist
 
@@ -30,7 +37,7 @@ for i in filelist:
 	
 	outname=g+"/"+name+".txt"
 	
-	p1=subprocess.Popen("metaphlan2.py %s -o %s --input_type %s --nproc 32 -t rel_ab_w_read_stats --tax_lev a --no_map --bt2_ps very-sensitive-local --min_alignment_len  50" %(i,outname,fmt),shell=True).wait()
+	p1=subprocess.Popen("metaphlan2.py %s -o %s --input_type %s --nproc %s -t rel_ab --tax_lev a --no_map --bt2_ps very-sensitive-local --min_alignment_len 50 %s" %(i,outname,fmt,threads,extras),shell=True).wait()
 	
 
 			
