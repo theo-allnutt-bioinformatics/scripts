@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/env python3
 from __future__ import print_function
 import sys
 from Bio import SeqIO
@@ -31,7 +31,7 @@ for x in h:
 	
 		k=x.split("\t")
 		contig=k[0]
-		type=k[2]
+		type1=k[2]
 		s=int(k[3])
 		e=int(k[4])
 		pos=(s,e)
@@ -40,14 +40,14 @@ for x in h:
 		id=k[-1].split("ID=")[1].split(";")[0].split("-RA")[0]
 		
 		
-		if type =="gene": #gene dict to get gene info 
+		if type1 =="gene": #gene dict to get gene info 
 			if contig not in genes.keys():
 				genes[contig]={}
 				genes[contig][id]=info
 			else:
 				genes[contig][id]=info
 			
-		if type=="exon":
+		if type1=="exon":
 			
 			if contig not in exons.keys():
 				contigs.append(contig)
